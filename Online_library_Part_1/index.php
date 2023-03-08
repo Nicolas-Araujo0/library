@@ -27,16 +27,14 @@ if (TRUE === isset($_POST['login'])) {
 		$password = md5($_POST['password']);
 		// On construit la requete SQL pour recuperer l'id, le readerId et l'email du lecteur � partir des deux variables ci-dessus
 		// dans la table tblreaders
-		$sql = "SELECT EmailId, Password, ReaderId, Status FROM tblreaders  WHERE EmailId = :email AND Password = :password";
+		$sql = "SELECT EmailId, Password, ReaderId, Status FROM tblreaders  WHERE EmailId = :email";
 		$query = $dbh->prepare($sql);
 		$query->bindParam(':email', $mail, PDO::PARAM_STR);
-		$query->bindParam(':password', $password, PDO::PARAM_STR);
 		// On execute la requete
 		$query->execute();
 		// On stocke le resultat de recherche dans une variable $result
 		$result = $query->fetch(PDO::FETCH_OBJ);
-
-		if (!empty($result)) {
+		if (!empty($result) && $result->Password == $password) {
 			// Si le resultat de recherche n'est pas vide
 			// On stocke l'identifiant du lecteur (ReaderId) dans $_SESSION['rdid']
 			$_SESSION['rdid'] = $result->ReaderId;
