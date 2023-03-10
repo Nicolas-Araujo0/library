@@ -1,33 +1,61 @@
-<?php 
-// On rÈcupËre la session courante
+<?php
+// On rÔøΩcupÔøΩre la session courante
 session_start();
 
-// On inclue le fichier de configuration et de connexion ‡ la base de donnÈes
+// On inclue le fichier de configuration et de connexion ÔøΩ la base de donnÔøΩes
 include('includes/config.php');
 
-// Si l'utilisateur n'est plus loguÈ
-// On le redirige vers la page de login
-	// Sinon on peut continuer. AprËs soumission du formulaire de profil
-
-    	// On recupere l'id du lecteur (cle secondaire)
-
-        // On recupere le nom complet du lecteur
-
-        // On recupere le numero de portable
-
-		// On update la table tblreaders avec ces valeurs
-        // On informe l'utilisateur du resultat de l'operation
 
 
-	// On souhaite voir la fiche de lecteur courant.
-	// On recupere l'id de session dans $_SESSION
+if (!isset($_SESSION["login"]) && $_SESSION["login"] != "") {
+    header("index.php");
+    // Si l'utilisateur n'est plus loguÔøΩ
+    // On le redirige vers la page de login
+    // Sinon on peut continuer. AprÔøΩs soumission du formulaire de profil
+} else {
+    if (isset($_POST["name"], $_POST["tel"], $_POST["emailId"]) && ($_POST["name"] != "" && $_POST["tel"] != "" && $_POST["emailId"] != "")) {
+        $postedName = $_POST["name"];
+        $postedNumber = $_POST["tel"];
+        $postedEmail = $_POST["emailId"];
 
-	// On prepare la requete permettant d'obtenir 
+        $sql = "UPDATE tblreaders SET Fullname = :name, MobileNumber = :tel, EmailId = :email WHERE ReaderId = :readerId";
+        $sth = $dbh->prepare($sql);
+        $sth->bindParam(":name", $postedName);
+        $sth->bindParam(":tel", $postedNumber);
+        $sth->bindParam(":email", $postedEmail);
+        $sth->bindParam(":readerId", $_SESSION["rdid"]);
+        $sth->execute();
+    }
+    // On recupere l'id du lecteur (cle secondaire)
+    $id = $_SESSION["rdid"];
+    // On recupere le nom complet du lecteur
+    $sql = "SELECT * FROM Tblreaders WHERE ReaderId = :id";
+    $sth = $dbh->prepare($sql);
+    $sth->bindParam(":id", $id);
+    $sth->execute();
+    // On recupere le numero de portable
+    $result = $sth->fetch(PDO::FETCH_OBJ);
+    $_SESSION["resultName"] = $result->FullName;
+    $_SESSION["resultEmail"] = $result->EmailId;
+    $_SESSION["resultNumber"] = $result->MobileNumber;
+    $_SESSION["resultRegDate"] = $result->RegDate;
+    $_SESSION["resultUpdateDate"] = $result->UpdateDate;
+    $_SESSION["resultStatus"] = $result->Status;
+}
+// On update la table tblreaders avec ces valeurs
+// On informe l'utilisateur du resultat de l'operation
+
+
+// On souhaite voir la fiche de lecteur courant.
+// On recupere l'id de session dans $_SESSION
+
+// On prepare la requete permettant d'obtenir 
 
 ?>
 
 <!DOCTYPE html>
 <html lang="FR">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
@@ -41,28 +69,71 @@ include('includes/config.php');
     <link href="assets/css/style.css" rel="stylesheet" />
 
 </head>
+
 <body>
     <!-- On inclue le fichier header.php qui contient le menu de navigation-->
-<?php include('includes/header.php');?>
-<!--On affiche le titre de la page : EDITION DU PROFIL-->
-   
- <!--On affiche le formulaire-->
-            <!--On affiche l'identifiant - non editable-->
+    <?php include('includes/header.php'); ?>
+    <!--On affiche le titre de la page : EDITION DU PROFIL-->
+    <h2>EDITION DU PROFIL</h2>
+    <hr>
+    <!--On affiche le formulaire-->
+    <form action="my-profile.php" method="POST">
+        <!--On affiche l'identifiant - non editable-->
+        <span>Identifiant : <?php echo $_SESSION["rdid"]; ?></span>
+        <!--On affiche la date d'enregistrement - non editable-->
+        <span>Date d'enregistrement : <?php echo $_SESSION["resultRegDate"]; ?></span>
+        <!--On affiche la date de derniere mise a jour - non editable-->
+        <span>Derni√®re mise √† jour : <?php echo $_SESSION["resultUpdateDate"] = NULL ?  $_SESSION["resultRegDate"] : $_SESSION["resultUpdateDate"]  ?></span>
+        <!--On affiche la statut du lecteur - non editable-->
+        <span>Statut : <?php echo $_SESSION["resultStatus"] = 1 ?  "Actif" : "Inactif" ?></span>
+        <!--On affiche le nom complet - editable-->
+        <label for="name">Nom complet :</label>
+        <input type="text" name="name" id="name" value="<?php echo $_SESSION["resultName"] ?>">
+        <!--On affiche le numero de portable- editable-->
+        <label for="tel">Num√©ro portable :</label>
+        <input type="text" name="tel" id="tel" value="<?php echo $_SESSION["resultNumber"] ?>">
+        <!--On affiche l'email- editable-->
+        <label for="emailId">Email :</label>
+        <input type="email" name="emailId" id="emailId" value="<?php echo $_SESSION["resultEmail"] ?>">
+        <input type="submit" value="Mettre √† jour" id="sub">
+    </form>
+    <style>
+        h2,
+        form {
+            padding: 20px 30px;
+        }
 
-			<!--On affiche la date d'enregistrement - non editable-->
+        label,
+        span {
+            margin-top: 10px;
+            font-weight: 600;
+        }
 
-            <!--On affiche la date de derniere mise a jour - non editable-->
+        form {
+            display: flex;
+            flex-direction: column;
+        }
 
-			<!--On affiche la statut du lecteur - non editable-->
+        form input {
+            width: 250px;
+        }
 
-			<!--On affiche le nom complet - editable-->
+        #sub {
+            margin-top: 15px;
+            margin-left: 50px;
+            width: 150px;
+            border-radius: 30px;
+        }
 
-			<!--On affiche le numero de portable- editable-->
-
-			<!--On affiche l'email- editable-->
- 
-    <?php include('includes/footer.php');?>
-     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+        #sub:hover {
+            cursor: pointer;
+            background-color: lightblue;
+            transition: 0.3s;
+        }
+    </style>
+    <?php include('includes/footer.php'); ?>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
+
 </html>

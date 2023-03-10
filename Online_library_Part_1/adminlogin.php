@@ -11,24 +11,38 @@ if (isset($_SESSION['login']) && $_SESSION['alogin'] != '') {
 }
 
 // A faire :
-// Apres la soumission du formulaire de login (plus bas dans ce fichier)
-// On verifie si le code captcha est correct en comparant ce que l'utilisateur a saisi dans le formulaire
-// $_POST["vercode"] et la valeur initialis�e $_SESSION["vercode"] lors de l'appel a captcha.php (voir plus bas
+if (isset($_POST["vercode"]) && $_POST["vercode"] == $_SESSION["vercode"]) {
+    if (isset($_POST["name"], $_POST["pass"])) {
+        // Apres la soumission du formulaire de login (plus bas dans ce fichier)
+        // On verifie si le code captcha est correct en comparant ce que l'utilisateur a saisi dans le formulaire
+        // $_POST["vercode"] et la valeur initialis�e $_SESSION["vercode"] lors de l'appel a captcha.php (voir plus bas
+        $name = $_POST["name"];
+        // Le code est correct, on peut continuer
+        // On recupere le nom de l'utilisateur saisi dans le formulaire
+        $pass = $_POST["pass"];
+        // On recupere le mot de passe saisi par l'utilisateur et on le crypte (fonction md5)
+        $sql = "SELECT * FROM admin WHERE UserName = :name AND Password = :pass";
+        // On construit la requete qui permet de retrouver l'utilisateur a partir de son nom et de son mot de passe
+        // depuis la table admin
+        $sth = $dbh->prepare($sql);
+        $sth->bindParam(":name", $name);
+        $sth->bindParam(":pass", $pass);
+        $sth->execute();
+        $result = $sth->fetch(PDO::FETCH_OBJ);
 
-// Le code est correct, on peut continuer
-// On recupere le nom de l'utilisateur saisi dans le formulaire
+        // Si le resultat de recherche n'est pas vide 
+        // On stocke le nom de l'utilisateur  $_POST['username'] en session $_SESSION
+        // On redirige l'utilisateur vers le tableau de bord administration (n'existe pas encore)
+        if(!empty($result)){
+            $_SESSION["username"] = $_POST["name"];
+            header("adminlogin.php");
+        }
+        else {
 
-// On recupere le mot de passe saisi par l'utilisateur et on le crypte (fonction md5)
-
-// On construit la requete qui permet de retrouver l'utilisateur a partir de son nom et de son mot de passe
-// depuis la table admin
-
-// Si le resultat de recherche n'est pas vide 
-// On stocke le nom de l'utilisateur  $_POST['username'] en session $_SESSION
-// On redirige l'utilisateur vers le tableau de bord administration (n'existe pas encore)
-
-// sinon le login est refuse. On le signal par une popup
-
+        }
+        // sinon le login est refuse. On le signal par une popup
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>

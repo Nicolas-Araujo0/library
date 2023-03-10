@@ -27,7 +27,7 @@ if (isset($_POST["vercode"])) {
             // On récupère le numéro de portable
             $emiel = $_POST["emiel"];
             // On récupère l'email
-            $pass = $_POST["pass"];
+            $pass = md5($_POST["pass"]) ;
             // On récupère le mot de passe
             $status = 1;
             // On fixe le statut du lecteur à 1 par défaut (actif)
@@ -44,7 +44,7 @@ if (isset($_POST["vercode"])) {
             // On éxecute la requete
             $lastID = $dbh->lastInsertId();
             if (!empty($lastID)) {
-                echo "New users registered successfully. Your ID is : " . $file;
+                echo  "<script> alert(New users registered successfully. Your ID is : {$file} )</script>";
             } else {
                 echo "error";
             }
@@ -87,61 +87,34 @@ if (isset($_POST["vercode"])) {
                 return false;
             }
         }
-
         // On cree une fonction valid() sans paramètre qui renvoie 
         // TRUE si les mots de passe saisis dans le formulaire sont identiques
         // FALSE sinon
-
         function checkAvailability(email) {
             let button = document.querySelector("#sub");
-
-
-            const defaultErrorMessage = '## This page isn\'t ready (yet)';
-
-            const form = new FormData();
-            form.append('entryID', email);
-
-            const d = fetch('check_availability.php', {
-                    header: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    method: 'POST',
-                    body: form,
+            let span = document.querySelector("#mail-verify")
+            fetch("./check_availability.php?email=" + email)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data)
+                    if (data == "Mail is already used") {
+                        button.disabled = true;
+                        span.style.color = "red";
+                    } else if (data == "You can use this mail adress") {
+                        button.disabled = false;
+                        span.style.color = "green"
+                    } else if (data == "Mail not valide") {
+                        button.disabled = true;
+                        span.style.color = "red"
+                    }
+                    span.textContent = data;
+                    span.style.display = "block"
                 })
-                .then(response => response.json())
-                .then(json => {
-                    if (json.status == 1 && json.data != "")
-                        return gunzipString(json.data);
-
-                    return defaultErrorMessage;
-                });
-            console.log(d);
-        
-            // fetch("check_availability.php", {
-            //         headers: {
-            //             "Accept": "application/json",
-            //             "Content-Type": "application/json"
-            //         },
-            //         method: "POST",
-            //         body: JSON.stringify(email)
-            //     })
-            //     .then((response) => {
-            //         if (response.ok) {
-            //             button.disabled= true;
-            //         } else {
-            //             console.error(response);
-            //             button.disabled= false;
-            //         }
-            //     })
-            //     .then((value) => {
-            //         console.log(value);
-            //     });
-
         }
-        
         // On cree une fonction avec l'email passé en paramêtre et qui vérifie la disponibilité de l'email
         // Cette fonction effectue un appel AJAX vers check_availability.php
+
+        
     </script>
 </head>
 
@@ -161,6 +134,7 @@ if (isset($_POST["vercode"])) {
         <div class="formulaire">
             <label for="emiel">Email</label>
             <input type="email" name="emiel" id="emiel" onBlur="checkAvailability(this.value)">
+            <span id="mail-verify"></span>
         </div>
         <div class="formulaire">
             <label for="pass">Mot de pass</label>
@@ -184,12 +158,12 @@ if (isset($_POST["vercode"])) {
     <!-- On appelle la fonction checkAvailability() dans la balise <input> de l'email onBlur="checkAvailability(this.value)" -->
     <style>
         h2 {
-            margin-left: 30%;
+            margin-left: 40%;
         }
 
         form {
-            width: 40%;
-            margin: 0 auto;
+            width: 100%;
+            margin: 0 40%;
         }
 
         .formulaire {
@@ -212,6 +186,20 @@ if (isset($_POST["vercode"])) {
 
         #sub {
             margin-bottom: 10px;
+            background-color: red;
+            color: whitesmoke;
+            border-radius: 5px;
+            border: none;
+            width: 100px;
+            height: 45px;
+        }
+        #sub:hover{
+            border: 2px solid black;
+            cursor: pointer;
+        }
+
+        #mail-verify{
+            display: none;
         }
     </style>
 
